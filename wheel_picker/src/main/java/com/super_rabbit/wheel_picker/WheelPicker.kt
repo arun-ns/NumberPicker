@@ -6,7 +6,6 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.os.Build
 import android.util.AttributeSet
-import android.util.Log
 import android.view.*
 import android.view.animation.DecelerateInterpolator
 import android.widget.OverScroller
@@ -42,6 +41,8 @@ interface OnScrollListener {
      * [.SCROLL_STATE_IDLE].
      */
     fun onScrollStateChange(view: WheelPicker, scrollState: Int)
+
+    fun onTouch(touch: Boolean)
 
     companion object {
 
@@ -189,6 +190,12 @@ class WheelPicker @JvmOverloads constructor(
         }
     }
 
+    override fun setEnabled(enabled: Boolean) {
+        super.setEnabled(enabled)
+        invalidate()
+    }
+
+
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         // Try greedily to fit the max width and height.
         var lp: ViewGroup.LayoutParams? = layoutParams
@@ -333,7 +340,17 @@ class WheelPicker @JvmOverloads constructor(
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
+
+        if(event.action == MotionEvent.ACTION_UP){
+            mOnScrollListener?.onTouch(false)
+
+        } else{
+            mOnScrollListener?.onTouch(true)
+        }
+
+        if (isEnabled) {
         onTouchEventVertical(event)
+        }
         return true
     }
 
@@ -372,6 +389,40 @@ class WheelPicker @JvmOverloads constructor(
                     mLastY = event.y
                 }
             }
+
+/*
+            MotionEvent.ACTION_UP -> {
+                if (mIsDragging) {
+                    mIsDragging = false;
+                    parent.requestDisallowInterceptTouchEvent(false);
+                    mVelocityTracker?.computeCurrentVelocity(1000, mMaximumVelocity.toFloat())
+                    val velocity =
+                        mVelocityTracker?.yVelocity?.toInt()
+                    if (Math.abs(velocity!!) > mMinimumVelocity) {
+                        mPreviousScrollerY = 0;
+                        mOverScroller?.fling(
+                            scrollX,
+                            scrollY,
+                            0,
+                            velocity,
+                            0,
+                            0,
+                            Integer.MIN_VALUE,
+                            Integer.MAX_VALUE,
+                            0,
+                            (getItemHeight() * 0.7).toInt()
+                        )
+                        invalidateOnAnimation();
+                        onScrollStateChange(OnScrollListener.SCROLL_STATE_FLING)
+                    } else {
+                        val y = event.y.toInt();
+                        handlerClickVertical(y)
+                    }
+                    recyclerVelocityTracker()
+                }
+            }
+*/
+
             MotionEvent.ACTION_UP -> {
                 if (mIsDragging) {
                     mIsDragging = false
@@ -389,12 +440,12 @@ class WheelPicker @JvmOverloads constructor(
                         invalidateOnAnimation()
                         onScrollStateChange(OnScrollListener.SCROLL_STATE_FLING)
                     }
-                    recyclerVelocityTracker()
                 } else {
                     //click event
                     val y = event.y.toInt()
                     handlerClickVertical(y)
                 }
+                recyclerVelocityTracker()
             }
 
             MotionEvent.ACTION_CANCEL -> {

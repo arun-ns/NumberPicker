@@ -33,13 +33,15 @@ class BirthdayPickerFragment : androidx.fragment.app.Fragment() {
 
         day.setAdapter(dayAdapter)
         month.setAdapter(monthAdapter)
+        month.isEnabled = false
+
 
         val birthday = with(Calendar.getInstance()) {
             Birthday(get(Calendar.DAY_OF_MONTH), get(Calendar.MONTH), get(Calendar.YEAR).minus(18))
         }
 
-        day.scrollToValue(birthday.day.toString())
-        month.scrollToValue(monthAdapter.getValue(birthday.month))
+        day.scrollToValue("01")
+        month.scrollToValue("02")
         year.scrollToValue(birthday.year.toString())
 
         Log.v(TAG, "0 = ${monthAdapter.getValue(0)}  11 = ${monthAdapter.getValue(11)} January = ${monthAdapter.getPosition("January")}  December = ${monthAdapter.getPosition("December")} ")
